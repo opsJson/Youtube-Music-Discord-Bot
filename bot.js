@@ -223,7 +223,7 @@ client.on("interactionCreate", async (interaction) => {
 	}
 	else if (interaction.commandName == "remove") {
 		const id = interaction.options.getString("id").trim();
-		if (id < 1) {
+		if (Number(id) == NaN || id < 1 || id > queue.length) {
 			const embed = new EmbedBuilder()
 				.setColor(0xFF0000)
 				.setTitle("ID inválido!");
