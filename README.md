@@ -1,6 +1,6 @@
 # Youtube-Music-Discord-Bot
 ### How it Works
-```/play``` Inicie uma playlist com uma música, buscando por nome ou url no Youtube. Sempre que a playlist for terminar, uma música parecida com a última começa a tocar.  
+```/play``` Inicie uma playlist com uma música, buscando por nome ou url no Youtube. Sempre que a playlist for terminar, e a opção rádio estiver ativa, uma música parecida com a última começa a tocar.  
 ```/pause``` Pausa a música.  
 ```/resume``` Retoma a música.  
 ```/stop``` Para a música, e limpa a playlist.  
@@ -8,6 +8,7 @@
 ```/list``` Exite a playlist.  
 ```/tocando``` Exibe a música tocando agora.  
 ```/remove``` Remove uma música da playlist.  
+```/radio``` Ativa/Desativa as recomendações de playlist.  
 
 ### Quick Start
 Create your bot and get your ```DiscordToken``` at https://discord.com/developers/applications  
