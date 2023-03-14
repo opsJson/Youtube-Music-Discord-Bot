@@ -21,7 +21,7 @@ const client = new Client({intents:[
 const DiscordToken  = "discord-token";
 const player = createAudioPlayer();
 const queue = [];
-let connection, current;
+let connection, current, recommendations = true;
 
 client.on("ready", async () => {
 	client.application.commands.create({
@@ -61,13 +61,24 @@ client.on("ready", async () => {
 	});
 	
 	client.application.commands.create({
-		name: "pop",
-		description: "Remova a última música da playlist."
+		name: "remove",
+		description: "Remova uma música da playlist.",
+		options: [{
+			name: "id",
+			description: "posição da música na playlist",
+			type: 3,
+			required: true
+		}]
 	});
 	
 	client.application.commands.create({
 		name: "tocando",
-		description: "Descubra qual música está tocando"
+		description: "Descubra qual música está tocando."
+	});
+	
+	client.application.commands.create({
+		name: "radio",
+		description: "Ative/Desative as recomendações da playlist."
 	});
 	
 	client.user.setPresence({
@@ -210,9 +221,47 @@ client.on("interactionCreate", async (interaction) => {
 		interaction.reply("Pulando música.");
 		playNextMusic();
 	}
-	else if (interaction.commandName == "pop") {
-		interaction.reply("Removendo última música da playlist.");
-		queue.pop();
+	else if (interaction.commandName == "remove") {
+		const id = interaction.options.getString("id").trim();
+		if (id < 1) {
+			const embed = new EmbedBuilder()
+				.setColor(0xFF0000)
+				.setTitle("ID inválido!");
+			
+			interaction.reply({
+					embeds: [embed],
+					ephemeral: true
+			});
+			return;
+		}
+		
+		const music = queue.splice(id-1, 1)[0];
+		if (!music) {
+			const embed = new EmbedBuilder()
+				.setColor(0xFF0000)
+				.setTitle("ID inválido!");
+			
+			interaction.reply({
+					embeds: [embed],
+					ephemeral: true
+			});
+			return;
+		}
+		
+		const embed = new EmbedBuilder()
+		.setColor(0xFF0000)
+		.setTitle(music.video_details.title)
+		.setURL(music.video_details.url)
+		.setAuthor({
+			name: music.video_details.channel.name,
+			iconURL: music.video_details.channel.icons?.[0].url,
+			url: music.video_details.channel.url
+		});
+		
+		interaction.reply({
+			content: "Música removida da playlist.",
+			embeds: [embed],
+		});
 	}
 	else if (interaction.commandName == "tocando") {
 		if (!current) {
@@ -250,6 +299,19 @@ client.on("interactionCreate", async (interaction) => {
 			ephemeral: true
 		});
 	}
+	else if (interaction.commandName == "radio") {
+		recommendations = !recommendations;
+		const emoji = recommendations ? "✅" : "❌";
+		
+		const embed = new EmbedBuilder()
+				.setColor(0xFF0000)
+				.setTitle(`${emoji} Recomendações de playlist`);
+			
+		interaction.reply({
+				embeds: [embed],
+				ephemeral: true
+		});
+	}
 });
 
 client.on("voiceStateUpdate", (oldState, newState) => {
@@ -272,6 +334,7 @@ async function searchMusic(url) {
 		return await play.video_info(url);
 	}
 	catch(e) {
+		console.log(e);
 		return null;
 	}
 }
@@ -291,7 +354,7 @@ async function playNextMusic() {
 		}]
 	});
 	
-	if (queue.length == 0) {
+	if (recommendations && queue.length == 0) {
 		const info = await searchMusic(music.related_video);
 		const stream = await play.stream_from_info(info);
 		
